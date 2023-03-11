@@ -6,9 +6,7 @@ const cors = require('cors');
 connectToMongo();
 
 const app = express();
-app.use(cors({
-    origin:process.env.BASE_URL
-}));
+app.use(cors());
 app.use(express.json());
 
 app.use('/api/auth',require("./Routes/routes.js"));
