@@ -2,7 +2,6 @@ const connectToMongo = require('./db_connect');
 const express = require('express');
 const cors = require('cors');
 
-const PORT = process.env.PORT || 5000;
 
 connectToMongo();
 
@@ -15,7 +14,7 @@ app.use('/api/notes',require("./Routes/notes_route.js"));
 
 
 app.listen(PORT,()=>{
-    console.log(`App is listening at http://localhost:${PORT}`);
+    console.log(`App is listening at ${process.env.BASE_URL}`);
 });
 
 
