@@ -72,7 +72,8 @@ body('password', "minimum password length is 8").isLength({ min: 8 })], async (r
 router.post('/login', [body('email', 'Enter correct email').isEmail(),
 body('password', 'password cannot be blank').notEmpty()], async (req, res) => {
     console.log(req.body);
-    const errors = validationResult(req);
+    try{
+        const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.json(errors);
     }
@@ -85,7 +86,7 @@ body('password', 'password cannot be blank').notEmpty()], async (req, res) => {
     if (!comparingPassword) {
         return res.status(400).json({success:false,  "error": "provide correct credentials" });
     }
-    const data = {
+    const data = {  
         user: {
             id: user.id
         }
@@ -96,6 +97,10 @@ body('password', 'password cannot be blank').notEmpty()], async (req, res) => {
     
     res.status(200).json({success:true,  "authToken": jwt_sign_data })
 
+    }catch(error){
+        res.status(500).json({success:false, error: "There are errors" })
+    }
+    
 
 });
 
