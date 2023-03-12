@@ -5,6 +5,9 @@ const { check, validationResult } = require('express-validator');
 const Note = require('../models/Note');
 
 
+router.get('/hell',(req,res)=>{
+    res.send('hello');
+})
 //ROUTE 1 : Adding Notes using POST to the mdb : /api/notes/addnote
 router.post('/addnote', fetchUser, [check('title', 'Title cannot be null').notEmpty()], (req, res) => {
     const errors = validationResult(req);

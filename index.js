@@ -11,6 +11,7 @@ app.use(express.json());
 
 app.use('/api/auth',require("./Routes/routes.js"));
 app.use('/api/notes',require("./Routes/notes_route.js"));
+app.use('/api/hello',require('./Routes/notes_route.js'))
 
 
 app.listen(process.env.PORT,()=>{
