@@ -91,8 +91,8 @@ body('password', 'password cannot be blank').notEmpty()], async (req, res) => {
         }
     }
     const jwt_sign_data = jwt.sign(data, jwt_secret);
-    console.log(jwt_sign_data);
-    console.log(data.user.id);
+    // console.log(jwt_sign_data);
+    // console.log(data.user.id);
     
     res.status(200).json({success:true,  "authToken": jwt_sign_data })
 

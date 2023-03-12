@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start":"node index.js"
+    "start": "node index.js"
   },
   "author": "FantomDX316",
   "license": "ISC",
@@ -16,6 +16,7 @@
     "express": "^4.18.2",
     "express-validator": "^6.14.3",
     "jsonwebtoken": "^9.0.0",
+    "lsof": "^0.1.0",
     "mongoose": "^6.9.1"
   },
   "devDependencies": {
