@@ -5,6 +5,7 @@ const { body, validationResult } = require('express-validator');
 const bcryptjs = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fetchuser = require('../middlewares/fetchUser')
+const nodemailer = require("nodemailer");
 require('dotenv').config();
 
 const jwt_secret = process.env.JWT_SECRET;
@@ -121,7 +122,33 @@ router.get('/getuser', fetchuser, async (req, res) => {
 //Route 4 : Sending otp to email for verification
 router.post("/emailVerify",[body("name").isLength({min:5}),body("email","email is not valid").isEmail(),
 body("password","minimum length should be 8").isLength({min:8})],(req,res)=>{
-    
+    const {email} = req.body;
+    console.log(email);
+    try{
+        const transporter = nodemailer.createTransport({
+            service:"gmail",
+            auth:{
+                user:process.env.EMAIL,
+                pass:process.env.PASS
+            }
+        });
+        const mailOptions = {
+            from:process.env.EMAIL,
+            to:email,
+            subject:"notebook app",
+            html:"<h1>121 is the otp</h1>"
+        };
+        transporter.sendMail(mailOptions,(error,info)=>{
+            if(error){
+                console.log(error)
+            }else{
+                console.log(info)
+                res.status(200).json({"info":info});
+            }
+        })
+    }catch(error){
+
+    }
 })
 
 
