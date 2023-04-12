@@ -116,6 +116,12 @@ router.get('/getuser', fetchuser, async (req, res) => {
         res.status(500).json({success,  error: "Internal Server Error" });
         console.error(error.message);
     }
+});
+
+//Route 4 : Sending otp to email for verification
+router.post("/emailVerify",[body("name").isLength({min:5}),body("email","email is not valid").isEmail(),
+body("password","minimum length should be 8").isLength({min:8})],(req,res)=>{
+    
 })
 
 
