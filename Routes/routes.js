@@ -16,7 +16,7 @@ router.post('/create_user', [body('name').isLength({ min: 5 }),
 body('email').isEmail(),
 body('password', "minimum password length is 8").isLength({ min: 8 })], async (req, res) => {
     try {
-        
+
         //validationResult returns an object with the value as array of object eg. {"errors":[msg:"error"]}..... so validating the request is important    
         const errors = validationResult(req);
         //if  our errors variable is not empty then we are sending a bad request
@@ -30,7 +30,7 @@ body('password', "minimum password length is 8").isLength({ min: 8 })], async (r
         const user = await User.findOne({ email: req.body.email });
         //if our user variable is empty we are gonna create our user else we are gonna send a bad request
         if (user) {
-            return res.status(400).json({ success:false,error: "Email already exists" });
+            return res.status(400).json({ success: false, error: "Email already exists" });
         }
 
 
@@ -43,26 +43,26 @@ body('password', "minimum password length is 8").isLength({ min: 8 })], async (r
 
         //Data for authToken that is to be sent as a response of successful authentication
 
-            //User.create returns a promise and when resolved gives us the data..... here we are using the .then and .catch syntax to work with promise
-            User.create({
-                name: req.body.name,
-                email: req.body.email,
-                password: securePassword
-            }).then((user) => {
-                const { id } = user;
-                const data = { user: { id } };
-                //signing jwt with our secret stored in env file...... sign is not a async function thus there is no need to await the function 
-                const jwt_sign_data = jwt.sign(data, jwt_secret);
-                // console.log(jwt_secret);
-                // console.log(jwt_sign_data);
-                // console.log(data.user.id);
-                //sending web token as a response to the clients request and storing it in the clients req header
-                
-                res.status(200).json({ success:true, "authToken": jwt_sign_data });
-            });
+        //User.create returns a promise and when resolved gives us the data..... here we are using the .then and .catch syntax to work with promise
+        User.create({
+            name: req.body.name,
+            email: req.body.email,
+            password: securePassword
+        }).then((user) => {
+            const { id } = user;
+            const data = { user: { id } };
+            //signing jwt with our secret stored in env file...... sign is not a async function thus there is no need to await the function 
+            const jwt_sign_data = jwt.sign(data, jwt_secret);
+            // console.log(jwt_secret);
+            // console.log(jwt_sign_data);
+            // console.log(data.user.id);
+            //sending web token as a response to the clients request and storing it in the clients req header
+
+            res.status(200).json({ success: true, "authToken": jwt_sign_data });
+        });
     }
     catch (error) {
-        res.status(500).json({success:false, error: "There are errors" });
+        res.status(500).json({ success: false, error: "There are errors" });
         console.error(error.message);
     }
 
@@ -73,35 +73,35 @@ body('password', "minimum password length is 8").isLength({ min: 8 })], async (r
 router.post('/login', [body('email', 'Enter correct email').isEmail(),
 body('password', 'password cannot be blank').notEmpty()], async (req, res) => {
     console.log(req.body);
-    try{
+    try {
         const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        return res.json(errors);
-    }
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) {
-        return res.status(400).json({ success: false, "error": "provide correct credentials" })
-    }
-    comparingPassword = await bcryptjs.compare(password, user.password);
-    if (!comparingPassword) {
-        return res.status(400).json({success:false,  "error": "provide correct credentials" });
-    }
-    const data = {  
-        user: {
-            id: user.id
+        if (!errors.isEmpty()) {
+            return res.json(errors);
         }
-    }
-    const jwt_sign_data = jwt.sign(data, jwt_secret);
-    // console.log(jwt_sign_data);
-    // console.log(data.user.id);
-    
-    res.status(200).json({success:true,  "authToken": jwt_sign_data })
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ success: false, "error": "provide correct credentials" })
+        }
+        comparingPassword = await bcryptjs.compare(password, user.password);
+        if (!comparingPassword) {
+            return res.status(400).json({ success: false, "error": "provide correct credentials" });
+        }
+        const data = {
+            user: {
+                id: user.id
+            }
+        }
+        const jwt_sign_data = jwt.sign(data, jwt_secret);
+        // console.log(jwt_sign_data);
+        // console.log(data.user.id);
 
-    }catch(error){
-        res.status(500).json({success:false, error: "There are errors" })
+        res.status(200).json({ success: true, "authToken": jwt_sign_data })
+
+    } catch (error) {
+        res.status(500).json({ success: false, error: "There are errors" })
     }
-    
+
 
 });
 
@@ -114,40 +114,52 @@ router.get('/getuser', fetchuser, async (req, res) => {
 
 
     } catch (error) {
-        res.status(500).json({success,  error: "Internal Server Error" });
+        res.status(500).json({ success, error: "Internal Server Error" });
         console.error(error.message);
     }
 });
 
 //Route 4 : Sending otp to email for verification
-router.post("/emailVerify",[body("name").isLength({min:5}),body("email","email is not valid").isEmail(),
-body("password","minimum length should be 8").isLength({min:8})],(req,res)=>{
-    const {email} = req.body;
+router.post("/emailVerify", [body("name").isLength({ min: 5 }), body("email", "email is not valid").isEmail(),
+body("password", "minimum length should be 8").isLength({ min: 8 })], async (req, res) => {
+    const { email } = req.body;
     console.log(email);
-    try{
+    try {
+        const errors = validationResult(req);
+        //if  our errors variable is not empty then we are sending a bad request
+        if (!errors.isEmpty()) {
+            console.log(errors);
+            return res.status(400).json(errors);
+        }
+        const user = await User.findOne({ email });
+        if (user) {
+            console.log(user);
+            return res.status(500).json({ "success": false, "error": "user already exists" });
+        }
         const transporter = nodemailer.createTransport({
-            service:"gmail",
-            auth:{
-                user:process.env.EMAIL,
-                pass:process.env.PASS
+            service: "gmail",
+            auth: {
+                user: process.env.EMAIL,
+                pass: process.env.PASS
             }
         });
         const mailOptions = {
-            from:process.env.EMAIL,
-            to:email,
-            subject:"notebook app",
-            html:"<h1>121 is the otp</h1>"
+            from: process.env.EMAIL,
+            to: email,
+            subject: "Notebook APP",
+            html: `<h4>OTP for registeration</h4> </br><p>${Math.floor(Math.random() * 899999 + 100000)}</p>`
         };
-        transporter.sendMail(mailOptions,(error,info)=>{
-            if(error){
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
                 console.log(error)
-            }else{
+                res.status(500).json({ "success": false })
+            } else {
                 console.log(info)
-                res.status(200).json({"info":info});
+                res.status(200).json({ "success": true });
             }
         })
-    }catch(error){
-
+    } catch (error) {
+        res.status(500).json({ "success": false });
     }
 })
 
