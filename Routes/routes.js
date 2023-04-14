@@ -216,6 +216,38 @@ router.post("/forgotVerify", [body("forgotEmail", "email is not valid").isEmail(
     }
 });
 
+//Route 6 - OTP verification
+
+router.post("/otpVerify",(req,res)=>{
+    try {
+        console.log(req.body);
+        if (parseInt(req.body.oneTimePassword) != OTP) {
+            return res.status(500).json({ "success": false, "error": "Invalid OTP" });
+        }else{
+            res.status(200).json({"success":true})
+        }
+    }catch(error){
+        res.status(500).json({"success":false,"error":"Internal Server Error"})
+    }
+})
+
+
+//Route 7 - Change Password
+
+router.put("/changePassword",[body("password","Minimum Length should be 8").isLength({min:8})],async(req,res)=>{
+    try{
+
+        const errors = validationResult(req);
+        if(!errors.isEmpty()){
+            return res.status(500).json({"success":false,"error":errors.errors[0].msg})
+        }
+        const {email,password} = req.body;
+        const user = await User.findOneAndUpdate(email,{$set:{password}},{new:true});
+        res.status(200).json({"success":true});
+    }catch(error){
+        res.status(500).json({"success":false,"error":"Internal Server Error"});
+    }
+})
 
 
 module.exports = router;
