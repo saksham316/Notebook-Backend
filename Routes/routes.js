@@ -16,8 +16,8 @@ let OTP = null;
 //ROUTE 1 : Creating a User using :POST /api/auth/create_user    without using authentication
 router.post('/create_user', async (req, res) => {
     try {
-        if(parseInt(req.body.oneTimePassword) != OTP){
-            return res.status(500).json({"success":false,"error":"Invalid OTP"});
+        if (parseInt(req.body.oneTimePassword) != OTP) {
+            return res.status(500).json({ "success": false, "error": "Invalid OTP" });
         };
 
         //generating salt to be added to our passed before hashing.... it returns a promise
@@ -36,12 +36,12 @@ router.post('/create_user', async (req, res) => {
         }).then((user) => {
             const { id } = user;
             const data = { user: { id } };
-        //     //signing jwt with our secret stored in env file...... sign is not a async function thus there is no need to await the function 
+            //     //signing jwt with our secret stored in env file...... sign is not a async function thus there is no need to await the function 
             const jwt_sign_data = jwt.sign(data, jwt_secret);
             console.log(jwt_secret);
             console.log(jwt_sign_data);
             console.log(data.user.id);
-        //     //sending web token as a response to the clients request and storing it in the clients req header
+            //     //sending web token as a response to the clients request and storing it in the clients req header
 
             res.status(200).json({ success: true, "authToken": jwt_sign_data });
         });
@@ -110,12 +110,12 @@ body("password", "Password Minimum Length should be 8").isLength({ min: 8 })], a
     const { email } = req.body;
     console.log(email);
     try {
-        
+
         const errors = validationResult(req);
         //if  our errors variable is not empty then we are sending a bad request
         if (!errors.isEmpty()) {
             console.log(errors);
-            return res.status(400).json({"success":false,"error":errors.errors[0].msg});
+            return res.status(400).json({ "success": false, "error": errors.errors[0].msg });
         }
         const user = await User.findOne({ email });
         if (user) {
@@ -125,10 +125,10 @@ body("password", "Password Minimum Length should be 8").isLength({ min: 8 })], a
         //generating otp if user does not exists already
         let otp = Math.floor(Math.random() * 899999 + 100000);
         OTP = otp;
-        setTimeout(()=>{
+        setTimeout(() => {
             otp = null;
             OTP = null;
-        },1000*120)
+        }, 1000 * 120)
 
         //setTimeout
 
@@ -148,7 +148,7 @@ body("password", "Password Minimum Length should be 8").isLength({ min: 8 })], a
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
                 console.log(error)
-                res.status(500).json({ "success": false })
+                res.status(500).json({ "success": false, "error": "Error Sending Mail" })
             } else {
                 console.log(info)
                 res.status(200).json({ "success": true });
@@ -157,7 +157,64 @@ body("password", "Password Minimum Length should be 8").isLength({ min: 8 })], a
     } catch (error) {
         res.status(500).json({ "success": false });
     }
-})
+});
+
+
+//Route 5 : forgot password email verification
+router.post("/forgotVerify", [body("forgotEmail", "email is not valid").isEmail()], async (req, res) => {
+
+    try {
+
+        const errors = validationResult(req);
+        //if  our errors variable is not empty then we are sending a bad request
+        if (!errors.isEmpty()) {
+            console.log(errors);
+            return res.status(400).json({ "success": false, "error": errors.errors[0].msg });
+        }
+        const { forgotEmail } = req.body;
+        console.log(forgotEmail);
+        const user = await User.findOne({ email:forgotEmail });
+        console.log(user);
+        if (!user) {
+            return res.status(404).json({"success":false,"error":"Email is not registered"})
+        } 
+        
+        let otp = Math.floor(Math.random() * 899999 + 100000);
+            OTP = otp;
+            setTimeout(() => {
+                otp = null;
+                OTP = null;
+            }, 1000 * 120)
+
+            // //setTimeout
+
+            const transporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                    user: process.env.EMAIL,
+                    pass: process.env.PASS
+                }
+            });
+            const mailOptions = {
+                from: process.env.EMAIL,
+                to: forgotEmail,
+                subject: "Notebook APP",
+                html: `<h4>OTP for verification</h4> </br><p>${otp}</p></br><h5>OTP is valid for 2 minutes</h5>`
+            };
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.log(error)
+                    res.status(500).json({ "success": false, "error": "Error Sending Mail" })
+                } else {
+                    console.log(info)
+                    res.status(200).json({ "success": true,"msg":"otp sent" });
+                }
+            });
+
+    } catch (error) {
+        res.status(500).json({ "success": false,"error":"Internal Server Error" });
+    }
+});
 
 
 
