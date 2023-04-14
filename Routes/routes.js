@@ -9,30 +9,16 @@ const nodemailer = require("nodemailer");
 require('dotenv').config();
 
 const jwt_secret = process.env.JWT_SECRET;
+let OTP = null;
+
 
 
 //ROUTE 1 : Creating a User using :POST /api/auth/create_user    without using authentication
-router.post('/create_user', [body('name').isLength({ min: 5 }),
-body('email').isEmail(),
-body('password', "minimum password length is 8").isLength({ min: 8 })], async (req, res) => {
+router.post('/create_user', async (req, res) => {
     try {
-
-        //validationResult returns an object with the value as array of object eg. {"errors":[msg:"error"]}..... so validating the request is important    
-        const errors = validationResult(req);
-        //if  our errors variable is not empty then we are sending a bad request
-        if (!errors.isEmpty()) {
-            return res.status(400).json(errors);
-        }
-        // else we are going to check our database for the email whether it already exists or not..... if not we are creating a new user from our request.body
-
-        //User.findOne returns a promise and when resolved gives the data
-
-        const user = await User.findOne({ email: req.body.email });
-        //if our user variable is empty we are gonna create our user else we are gonna send a bad request
-        if (user) {
-            return res.status(400).json({ success: false, error: "Email already exists" });
-        }
-
+        if(req.body.oneTimePassword != OTP){
+            return res.status(500).json({"success":false,"error":"invalid OTP"});
+        };
 
 
         //generating salt to be added to our passed before hashing.... it returns a promise
@@ -121,21 +107,28 @@ router.get('/getuser', fetchuser, async (req, res) => {
 
 //Route 4 : Sending otp to email for verification
 router.post("/emailVerify", [body("name").isLength({ min: 5 }), body("email", "email is not valid").isEmail(),
-body("password", "minimum length should be 8").isLength({ min: 8 })], async (req, res) => {
+body("password", "Password Minimum Length should be 8").isLength({ min: 8 })], async (req, res) => {
     const { email } = req.body;
     console.log(email);
     try {
+        
         const errors = validationResult(req);
         //if  our errors variable is not empty then we are sending a bad request
         if (!errors.isEmpty()) {
             console.log(errors);
-            return res.status(400).json(errors);
+            return res.status(400).json({"success":false,"error":errors.errors[0].msg});
         }
         const user = await User.findOne({ email });
         if (user) {
             console.log(user);
-            return res.status(500).json({ "success": false, "error": "user already exists" });
+            return res.status(500).json({ "success": false, "error": "User Already Exists" });
         }
+        //generating otp if user does not exists already
+        let otp = Math.floor(Math.random() * 899999 + 100000);
+        OTP = otp;
+
+        //setTimeout
+
         const transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
@@ -147,7 +140,7 @@ body("password", "minimum length should be 8").isLength({ min: 8 })], async (req
             from: process.env.EMAIL,
             to: email,
             subject: "Notebook APP",
-            html: `<h4>OTP for registeration</h4> </br><p>${Math.floor(Math.random() * 899999 + 100000)}</p>`
+            html: `<h4>OTP for registeration</h4> </br><p>${otp}</p>`
         };
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
