@@ -16,10 +16,9 @@ let OTP = null;
 //ROUTE 1 : Creating a User using :POST /api/auth/create_user    without using authentication
 router.post('/create_user', async (req, res) => {
     try {
-        if(req.body.oneTimePassword != OTP){
-            return res.status(500).json({"success":false,"error":"invalid OTP"});
+        if(parseInt(req.body.oneTimePassword) != OTP){
+            return res.status(500).json({"success":false,"error":"Invalid OTP"});
         };
-
 
         //generating salt to be added to our passed before hashing.... it returns a promise
         const salt = await bcryptjs.genSalt(10);
@@ -37,12 +36,12 @@ router.post('/create_user', async (req, res) => {
         }).then((user) => {
             const { id } = user;
             const data = { user: { id } };
-            //signing jwt with our secret stored in env file...... sign is not a async function thus there is no need to await the function 
+        //     //signing jwt with our secret stored in env file...... sign is not a async function thus there is no need to await the function 
             const jwt_sign_data = jwt.sign(data, jwt_secret);
-            // console.log(jwt_secret);
-            // console.log(jwt_sign_data);
-            // console.log(data.user.id);
-            //sending web token as a response to the clients request and storing it in the clients req header
+            console.log(jwt_secret);
+            console.log(jwt_sign_data);
+            console.log(data.user.id);
+        //     //sending web token as a response to the clients request and storing it in the clients req header
 
             res.status(200).json({ success: true, "authToken": jwt_sign_data });
         });
@@ -126,6 +125,10 @@ body("password", "Password Minimum Length should be 8").isLength({ min: 8 })], a
         //generating otp if user does not exists already
         let otp = Math.floor(Math.random() * 899999 + 100000);
         OTP = otp;
+        setTimeout(()=>{
+            otp = null;
+            OTP = null;
+        },1000*120)
 
         //setTimeout
 
@@ -140,7 +143,7 @@ body("password", "Password Minimum Length should be 8").isLength({ min: 8 })], a
             from: process.env.EMAIL,
             to: email,
             subject: "Notebook APP",
-            html: `<h4>OTP for registeration</h4> </br><p>${otp}</p>`
+            html: `<h4>OTP for registeration</h4> </br><p>${otp}</p></br><h5>OTP is valid for 2 minutes</h5>`
         };
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
