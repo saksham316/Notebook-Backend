@@ -242,7 +242,11 @@ router.put("/changePassword",[body("password","Minimum Length should be 8").isLe
             return res.status(500).json({"success":false,"error":errors.errors[0].msg})
         }
         const {email,password} = req.body;
-        const user = await User.findOneAndUpdate(email,{$set:{password}},{new:true});
+        console.log(email);
+        const salt = await bcryptjs.genSalt(10);
+        const secretPassword = await bcryptjs.hash(password,salt);
+        const user = await User.findOneAndUpdate(email,{$set:{password:secretPassword}},{new:true});
+        console.log(user);
         res.status(200).json({"success":true});
     }catch(error){
         res.status(500).json({"success":false,"error":"Internal Server Error"});
