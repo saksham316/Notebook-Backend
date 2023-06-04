@@ -1,2 +1,4 @@
-# Notebook-Backend
-Repo with the Backend code of Notebook App
+# Notebook Backend
+
+## Checkout the app here https://fantomnotebookapp.netlify.app  
+
